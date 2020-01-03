@@ -6,3 +6,5 @@ libs/
 --- util /  
 ------ stats.js 检测动画运行帧数 显示画面每秒传输帧数
 ------ data.gui.js 改变代码变量的界面组件
+
+https://jeromeetienne.github.io/AR.js-docs/misc/EXAMPLES.html
