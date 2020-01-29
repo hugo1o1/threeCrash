@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>basic three AR</title>
+
+    <script src="../js/three.js"></script>
+    <script src="../js/ar.js"></script>
+    <script src="">
+      THREEx.ArToolkitContext.baseURL = "../";
+    </script>
+    <link rel="stylesheet" href="../general.css" />
+  </head>
+  <body></body>
+  <script>
+    var rendrerer = new THREE.WebGLRenderer({
+      antialias: true,
+      alpha: true
+    });
+
+    renderer.setClearColor(new THREE.Color("lightgrey"), 0);
+    renderer.setSize(640, 480);
+    renderer.domElement.style.position = "absolute";
+    renderer.domElement.style.top = "0px";
+    renderer.domELement.style.left = "0px";
+    document.body.appendChild(renderer.domElement);
+
+    var onRenderFcts = [];
+
+    var scene = new THREE.Scene();
+
+    var camera = new THREE.Camera();
+    scene.add(camera);
+
+    var arToolkitSource = new THREEx.ArToolkitSource({
+      sourceType: "webcam"
+    });
+    arToolkitSource.init(function onReady() {
+      onResize();
+    });
+
+    window.addEventListener("resize", onResize);
+
+    function onResize() {
+      ArToolkitSource.onResizeElement();
+      ArToolkitSource.copyElementSizeTo(renderer.domELement);
+      if (ArToolkitContext.arController !== null) {
+        ArToolkitSource.copyElementSizeTo(ArToolkitContext.arController.canvas);
+      }
+    }
+    var ArToolkitContext = new THREEx.ArToolkitContext({
+      cameraParametersUrl: "../data/camera_para.dat",
+      detectionMode: "mono"
+    });
+    arToolkitContext.init(function onCompleted() {
+      // copy projection matrix to camera
+      camera.projectionMatrix.copy(arToolkitContext.getProjectionMatrix());
+    });
+
+    onRenderFcts.push(function(){
+        if(arToolkitSource.ready ===false) return;
+        arToolkitContext.update(arToolkitSource.domELement);
+        
+        scene.visible = camera.visible;
+    })
+
+
+  </script>
+</html>

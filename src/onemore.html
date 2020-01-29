@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <script src="../libs/util/Stats.js"></script>
+    <script src="../libs/three/three.js"></script>
+    <script src="../libs/util/dat.gui.js"></script>
+    <script src="../libs/three/controls/TrackballControls.js"></script>
+    <script src="../js/util.js"></script>
+    <link rel="stylesheet" href="../general.css" />
+    <title>Document</title>
+  </head>
+  <body>
+    <script>
+      function init() {
+        stats = initStats();
+        scene = new THREE.Scene();
+        camera = new THREE.PerspectiveCamera(
+          45,
+          window.innerWidth / window.innerHeight,
+          0.1,
+          1000
+        );
+        camera.position.set(-40, 30, 30);
+        camera.lookAt(scene.position);
+        renderer = new THREE.WebGLRenderer();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap; // default THREE.PCFShadowMap
+
+        addLight();
+        addAxes();
+        addCube();
+        addSphere();
+
+        document.body.appendChild(renderer.domElement);
+        // let  step = 0;
+        let controls = new (function() {
+          this.cubeRotaion = 0.02;
+        })();
+
+        let gui = new dat.GUI();
+        gui.add(controls, "cubeRotaion", 0, 0.1);
+
+        trackballControls = initTrackballControls(camera, renderer);
+        clock = new THREE.Clock();
+
+        renderScene();
+        // get the animation
+        function renderScene() {
+          // update the stats and the controls
+          trackballControls.update(clock.getDelta());
+          stats.update();
+          cube.rotation.x += controls.cubeRotaion;
+          requestAnimationFrame(renderScene);
+          renderer.render(scene, camera);
+        }
+        function addLight() {
+          let spotLight = new THREE.SpotLight(0xffffff);
+          spotLight.position.set(-50, 100, 100);
+          spotLight.castShadow = true; // default false
+          spotLight.shadow.mapSize = new THREE.Vector2(1024, 1024);
+          spotLight.shadow.camera.far = 130;
+          spotLight.shadow.camera.near = 40;
+          scene.add(spotLight);
+          //   var helper = new THREE.CameraHelper(spotLight.shadow.camera);
+          //   scene.add(helper);
+        }
+        function addAxes() {
+          let axes = new THREE.AxesHelper(100);
+          scene.add(axes);
+        }
+
+        function addCube() {
+          let cubeGeomety = new THREE.BoxGeometry(4, 4, 4);
+          let cubeMaterial = new THREE.MeshLambertMaterial({
+            color: 0xffff00,
+            wireframe: false
+          });
+          cube = new THREE.Mesh(cubeGeomety, cubeMaterial);
+          cube.position.set(5, 10, 2);
+          //   cube.castShadow = true;
+          scene.add(cube);
+        }
+
+        function addSphere() {
+          let sphereGeometry = new THREE.SphereGeometry(10, 32, 32);
+          let sphereMaterial = new THREE.MeshLambertMaterial({
+            color: 0x7777ff,
+            wireframe: true
+          });
+          let sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
+          // position the sphere
+          sphere.position.set(20, 4, 2);
+
+          // add the sphere to the scene
+          scene.add(sphere);
+        }
+      }
+
+      init();
+
+      window.addEventListener("resize", () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+      });
+    </script>
+  </body>
+</html>
