@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <title>Example 01.02 - First Scene</title>
+    <meta charset="UTF-8" />
+    <script
+      type="text/javascript"
+      charset="UTF-8"
+      src="../../js/three.js"
+    ></script>
+    <script src="../../libs/util/Stats.js"></script>
+    <script src="../../libs/util/dat.gui.js"></script>
+    <script src="../../libs/three/controls/TrackballControls.js"></script>
+    <script src="../../js/util.js"></script>
+    <!-- loaders  -->
+    <script src="../../libs/three/loaders/OBJLoader.js"></script>
+
+    <script src="../../libs/three/loaders/MTLLoader.js"></script>
+    <link rel="stylesheet" href="../../general.css" />
+  </head>
+
+  <body>
+    <!-- Div which will hold the Output -->
+    <div id="webgl-output"></div>
+
+    <!-- Javascript code that runs our Three.js examples -->
+    <script type="text/javascript">
+      (function() {
+        // your page initialization code here
+        // the DOM will be available here
+        init();
+      })();
+
+      function init() {
+        stats = initStats();
+        scene = new THREE.Scene();
+
+        camera = new THREE.PerspectiveCamera(
+          45,
+          window.innerWidth / window.innerHeight,
+          0.1,
+          1000
+        );
+        camera.position.set(-30, 40, 30);
+        camera.lookAt(scene.position);
+
+        renderer = new THREE.WebGLRenderer();
+        renderer.setClearColor(new THREE.Color(0x000000));
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        // renderer.shadowMap.enabled = true;
+        // addAxes();
+        addPlane();
+        addCube();
+        addSphere();
+        addSpotLight();
+        addBlenderDodemo();
+
+        document.body.appendChild(renderer.domElement);
+        var step = 0;
+
+        var controls = new (function() {
+          this.rotationSpeed = 0.02;
+          this.bouncingSpeed = 0.03;
+        })();
+
+        var gui = new dat.GUI();
+        gui.add(controls, "rotationSpeed", 0, 0.5);
+        gui.add(controls, "bouncingSpeed", 0, 0.5);
+
+        var trackballControls = initTrackballControls(camera, renderer);
+        var clock = new THREE.Clock();
+        renderScene();
+
+        function addPlane() {
+          // 宽 高
+          planeGeometry = new THREE.PlaneGeometry(60, 20);
+          planeMaterial = new THREE.MeshLambertMaterial({
+            color: 0xfffff
+          });
+          plane = new THREE.Mesh(planeGeometry, planeMaterial);
+
+          // rotate and position the plane
+          plane.rotation.x = -0.5 * Math.PI;
+          plane.position.set(15, 0, 0);
+          scene.add(plane);
+        }
+
+        function addCube() {
+          cubeGeometry = new THREE.BoxGeometry(4, 4, 4);
+          cubeMaterial = new THREE.MeshLambertMaterial({
+            color: 0xffff00,
+            wireframe: false
+          });
+          cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
+          cube.position.set(-5, 4, 2);
+          cube.castShadow = true;
+          scene.add(cube);
+        }
+        function addSphere() {
+          sphereGeometry = new THREE.SphereGeometry(4, 20, 20);
+          sphereMaterial = new THREE.MeshLambertMaterial({
+            color: 0x7777ff,
+            wireframe: false
+          });
+          sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
+
+          sphere.position.set(20, 4, 2);
+          sphere.castShadow = true;
+          scene.add(sphere);
+        }
+
+        function addBlenderDodemo() {
+          const objLoader = new THREE.OBJLoader();
+          objLoader.setPath("../../blender/demo/");
+
+          const mtlLoader = new THREE.MTLLoader();
+          mtlLoader.setPath("../../blender/demo/");
+
+          new Promise((resolve, reject) => {
+            mtlLoader.load("demo.mtl", mtl => {
+              resolve(mtl);
+            });
+          }).then(mtl => {
+            mtl.preload();
+            objLoader.setMaterials(mtl);
+            objLoader.load("demo.obj", obj => {
+              scene.add(obj);
+            });
+          });
+        }
+
+        function addSpotLight() {
+          spotLight = new THREE.SpotLight(0xffffff);
+          spotLight.position.set(-40, 40, -15);
+          spotLight.castShadow = true;
+          spotLight.shadow.mapSize = new THREE.Vector2(1024, 1024);
+          spotLight.shadow.camera.far = 130;
+          spotLight.shadow.camera.near = 40;
+          scene.add(spotLight);
+        }
+
+        function renderScene() {
+          // update the stats and the controls
+          trackballControls.update(clock.getDelta());
+          stats.update();
+
+          // rotate the cube around its axes
+          cube.rotation.x += controls.rotationSpeed;
+          cube.rotation.y += controls.rotationSpeed;
+          cube.rotation.z += controls.rotationSpeed;
+
+          // bounce the sphere up and down
+          step += controls.bouncingSpeed;
+          sphere.position.x = 20 + 10 * Math.cos(step);
+          sphere.position.y = 2 + 10 * Math.abs(Math.sin(step));
+
+          // render using requestAnimationFrame
+          requestAnimationFrame(renderScene);
+          renderer.render(scene, camera);
+        }
+      }
+
+      window.addEventListener("resize", () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+      });
+    </script>
+  </body>
+</html>
